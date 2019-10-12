@@ -72,7 +72,9 @@ class Elf {
 
   uint64_t GetLoadBias() { return load_bias_; }
 
+#ifdef WITH_DEBUG_FRAME
   bool IsValidPc(uint64_t pc);
+#endif
 
   void GetLastError(ErrorData* data);
   ErrorCode GetLastErrorCode();

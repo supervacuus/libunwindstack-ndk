@@ -55,17 +55,22 @@ bool Elf::Init(bool init_gnu_debugdata) {
   valid_ = interface_->Init(&load_bias_);
   if (valid_) {
     interface_->InitHeaders();
+#ifdef WITH_DEBUG_FRAME
     if (init_gnu_debugdata) {
       InitGnuDebugdata();
     } else {
       gnu_debugdata_interface_.reset(nullptr);
     }
+#else
+    gnu_debugdata_interface_.reset(nullptr);
+#endif
   } else {
     interface_.reset(nullptr);
   }
   return valid_;
 }
 
+#ifdef WITH_DEBUG_FRAME
 // It is expensive to initialize the .gnu_debugdata section. Provide a method
 // to initialize this data separately.
 void Elf::InitGnuDebugdata() {
@@ -97,6 +102,7 @@ bool Elf::GetSoname(std::string* name) {
   std::lock_guard<std::mutex> guard(lock_);
   return valid_ && interface_->GetSoname(name);
 }
+#endif
 
 uint64_t Elf::GetRelPc(uint64_t pc, const MapInfo* map_info) {
   return pc - map_info->start + load_bias_ + map_info->elf_offset;
@@ -109,6 +115,7 @@ bool Elf::GetFunctionName(uint64_t addr, std::string* name, uint64_t* func_offse
                                                      addr, load_bias_, name, func_offset)));
 }
 
+#ifdef WITH_DEBUG_FRAME
 bool Elf::GetGlobalVariable(const std::string& name, uint64_t* memory_address) {
   if (!valid_) {
     return false;
@@ -159,6 +166,7 @@ uint64_t Elf::GetLastErrorAddress() {
   }
   return 0;
 }
+#endif
 
 // The relative pc is always relative to the start of the map from which it comes.
 bool Elf::Step(uint64_t rel_pc, uint64_t adjusted_rel_pc, uint64_t elf_offset, Regs* regs,
@@ -217,6 +225,7 @@ void Elf::GetInfo(Memory* memory, bool* valid, uint64_t* size) {
   }
 }
 
+#ifdef WITH_DEBUG_FRAME
 bool Elf::IsValidPc(uint64_t pc) {
   if (!valid_ || pc < load_bias_) {
     return false;
@@ -233,6 +242,7 @@ bool Elf::IsValidPc(uint64_t pc) {
 
   return false;
 }
+#endif
 
 ElfInterface* Elf::CreateInterfaceFromMemory(Memory* memory) {
   if (!IsValidElf(memory)) {
@@ -256,9 +266,6 @@ ElfInterface* Elf::CreateInterfaceFromMemory(Memory* memory) {
     } else if (e_machine == EM_386) {
       arch_ = ARCH_X86;
       interface.reset(new ElfInterface32(memory));
-    } else if (e_machine == EM_MIPS) {
-      arch_ = ARCH_MIPS;
-      interface.reset(new ElfInterface32(memory));
     } else {
       // Unsupported.
       ALOGI("32 bit elf that is neither arm nor x86 nor mips: e_machine = %d\n", e_machine);
@@ -275,8 +282,6 @@ ElfInterface* Elf::CreateInterfaceFromMemory(Memory* memory) {
       arch_ = ARCH_ARM64;
     } else if (e_machine == EM_X86_64) {
       arch_ = ARCH_X86_64;
-    } else if (e_machine == EM_MIPS) {
-      arch_ = ARCH_MIPS64;
     } else {
       // Unsupported.
       ALOGI("64 bit elf that is neither aarch64 nor x86_64 nor mips64: e_machine = %d\n",

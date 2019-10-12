@@ -66,7 +66,9 @@ class ElfInterface {
   virtual bool Step(uint64_t rel_pc, uint64_t load_bias, Regs* regs, Memory* process_memory,
                     bool* finished);
 
+#ifdef WITH_DEBUG_FRAME
   virtual bool IsValidPc(uint64_t pc);
+#endif
 
   Memory* CreateGnuDebugdataMemory();
 

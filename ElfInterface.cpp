@@ -22,9 +22,11 @@
 #include <string>
 #include <utility>
 
+#ifdef WITH_DEBUG_FRAME
 #include <7zCrc.h>
 #include <Xz.h>
 #include <XzCrc64.h>
+#endif
 
 #include <unwindstack/DwarfError.h>
 #include <unwindstack/DwarfSection.h>
@@ -33,7 +35,9 @@
 #include <unwindstack/Memory.h>
 #include <unwindstack/Regs.h>
 
+#ifdef WITH_DEBUG_FRAME
 #include "DwarfDebugFrame.h"
+#endif
 #include "DwarfEhFrame.h"
 #include "DwarfEhFrameWithHdr.h"
 #include "Symbols.h"
@@ -46,6 +50,7 @@ ElfInterface::~ElfInterface() {
   }
 }
 
+#ifdef WITH_DEBUG_FRAME
 bool ElfInterface::IsValidPc(uint64_t pc) {
   if (!pt_loads_.empty()) {
     for (auto& entry : pt_loads_) {
@@ -123,6 +128,7 @@ Memory* ElfInterface::CreateGnuDebugdataMemory() {
 
   return dst.release();
 }
+#endif
 
 template <typename AddressType>
 void ElfInterface::InitHeadersWithTemplate() {
@@ -149,6 +155,7 @@ void ElfInterface::InitHeadersWithTemplate() {
     eh_frame_size_ = static_cast<uint64_t>(-1);
   }
 
+#ifdef WITH_DEBUG_FRAME
   if (debug_frame_offset_ != 0) {
     debug_frame_.reset(new DwarfDebugFrame<AddressType>(memory_));
     if (!debug_frame_->Init(debug_frame_offset_, debug_frame_size_)) {
@@ -157,6 +164,7 @@ void ElfInterface::InitHeadersWithTemplate() {
       debug_frame_size_ = static_cast<uint64_t>(-1);
     }
   }
+#endif
 }
 
 template <typename EhdrType, typename PhdrType, typename ShdrType>

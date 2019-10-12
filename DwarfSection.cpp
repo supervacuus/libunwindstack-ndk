@@ -26,7 +26,9 @@
 #include <unwindstack/Regs.h>
 
 #include "DwarfCfa.h"
+#ifdef WITH_DEBUG_FRAME
 #include "DwarfDebugFrame.h"
+#endif
 #include "DwarfEhFrame.h"
 #include "DwarfEncoding.h"
 #include "DwarfOp.h"
@@ -906,9 +908,11 @@ const DwarfFde* DwarfSectionImpl<AddressType>::GetFdeFromIndex(size_t index) {
 template class DwarfSectionImpl<uint32_t>;
 template class DwarfSectionImpl<uint64_t>;
 
+#ifdef WITH_DEBUG_FRAME
 // Explicitly instantiate DwarfDebugFrame
 template class DwarfDebugFrame<uint32_t>;
 template class DwarfDebugFrame<uint64_t>;
+#endif
 
 // Explicitly instantiate DwarfEhFrame
 template class DwarfEhFrame<uint32_t>;

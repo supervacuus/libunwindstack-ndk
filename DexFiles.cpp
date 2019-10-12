@@ -57,14 +57,12 @@ DexFiles::~DexFiles() {
 void DexFiles::SetArch(ArchEnum arch) {
   switch (arch) {
     case ARCH_ARM:
-    case ARCH_MIPS:
     case ARCH_X86:
       read_entry_ptr_func_ = &DexFiles::ReadEntryPtr32;
       read_entry_func_ = &DexFiles::ReadEntry32;
       break;
 
     case ARCH_ARM64:
-    case ARCH_MIPS64:
     case ARCH_X86_64:
       read_entry_ptr_func_ = &DexFiles::ReadEntryPtr64;
       read_entry_func_ = &DexFiles::ReadEntry64;
