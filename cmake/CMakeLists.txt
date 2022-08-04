@@ -1,9 +1,8 @@
 project(unwindstack LANGUAGES C CXX ASM)
 cmake_minimum_required(VERSION 3.10)
 
+set(UNWINDSTACK_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../  PARENT_SCOPE)
 set(UNWINDSTACK_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../)
-
-include_directories(${UNWINDSTACK_ROOT} ${UNWINDSTACK_ROOT}/include)
 
 set(ANDROID_SOURCES
     ${UNWINDSTACK_ROOT}/android-base/errno_restorer.h
@@ -23,6 +22,7 @@ set(ANDROID_SOURCES
     ${UNWINDSTACK_ROOT}/android-base/utf8.h
     ${UNWINDSTACK_ROOT}/procinfo/process_map.h
     ${UNWINDSTACK_ROOT}/procinfo/process.h
+        PARENT_SCOPE
 )
 
 set(UNWINDSTACK_SOURCES
@@ -73,32 +73,25 @@ set(UNWINDSTACK_SOURCES
     ${UNWINDSTACK_ROOT}/Symbols.h
     ${UNWINDSTACK_ROOT}/ThreadEntry.cpp
     ${UNWINDSTACK_ROOT}/ThreadEntry.h
-    ${UNWINDSTACK_ROOT}/ThreadUnwinder.cpp
+    # ${UNWINDSTACK_ROOT}/ThreadUnwinder.cpp
     ${UNWINDSTACK_ROOT}/unistdfix.h
     ${UNWINDSTACK_ROOT}/Unwinder.cpp
+        PARENT_SCOPE
 )
 
 if(${CMAKE_SYSTEM_PROCESSOR} MATCHES arm)
 elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64.*|x86_64.*|AMD64.*")
     set(UNWINDSTACK_SOURCES_GETREG
         ${UNWINDSTACK_ROOT}/AsmGetRegsX86_64.S
+            PARENT_SCOPE
     )
 elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686.*|i386.*|x86.*")
     set(UNWINDSTACK_SOURCES_GETREG
         ${UNWINDSTACK_ROOT}/AsmGetRegsX86.S
+            PARENT_SCOPE
     )
 else()
     add_definitions(-DEM_ARM=40)
 endif()
 
-add_library(unwindstack STATIC
-    ${ANDROID_SOURCES}
-    ${UNWINDSTACK_SOURCES}
-    ${UNWINDSTACK_SOURCES_GETREG}
-)
-target_link_libraries(unwindstack log)
-set_property(TARGET unwindstack PROPERTY CXX_STANDARD 17)
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(unwindstack PRIVATE $<BUILD_INTERFACE:-Wno-unknown-attributes>)
-endif()
